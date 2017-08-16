@@ -508,7 +508,16 @@ Form.prototype.validationUpdate = function( updated ) {
     var that = this;
 
     if ( config.validateContinuously === true ) {
-        updated = updated || {};
+        updated = updated ? JSON.parse( JSON.stringify( updated ) ) : {};
+
+        /*
+         * We don't want requireds and constraints of questions in a newly created
+         * repeat to be evaluated immediately after the repeat is created.
+         * However, we do want constraints and requireds outside the repeat that
+         * depend on e.g. the count() of repeats to be re-evaluated.
+         * To achieve this we use a dirty trick to set the index to an impossibly high number.
+         */
+        updated.repeatIndex = 100000;
 
         $nodes = this.getRelatedNodes( 'data-constraint', '', updated )
             .add( this.getRelatedNodes( 'data-required', '', updated ) );

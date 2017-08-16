@@ -880,6 +880,51 @@ describe( 'validation', function() {
 
     } );
 
+    describe( 'with validateContinuously setting', function() {
+        var b = '[name="/data/b"]';
+        var c = '[name="/data/c"]';
+
+        var config = require( 'enketo-config' );
+        var dflt = config.validateContinuously;
+        beforeAll( function() {
+            //config.repeatOrdinals = true;
+        } );
+
+        afterAll( function() {
+            config.validateContinuously = dflt;
+        } );
+
+        it( '=false (default), will not immediate re-evaluate a constraint if its dependent value changes', function( done ) {
+            var form = loadForm( 'constraint-dependency.xml' );
+            config.validateContinuously = false;
+            form.init();
+
+            form.view.$.find( c ).val( '12' ).trigger( 'change' );
+            form.view.$.find( b ).val( 'a' ).trigger( 'change' ); // violates constraint for c
+
+            setTimeout( function() {
+                expect( form.view.$.find( c ).closest( '.question' ).hasClass( 'invalid-required' ) ).toEqual( false );
+                done();
+            }, 1500 );
+
+        } );
+
+        it( '=true, will not immediate re-evaluate a constraint if its dependent value changes', function( done ) {
+            var form = loadForm( 'constraint-dependency.xml' );
+            config.validateContinuously = true;
+            form.init();
+
+            form.view.$.find( c ).val( '12' ).trigger( 'change' );
+            form.view.$.find( b ).val( 'a' ).trigger( 'change' ); // violates constraint for c
+
+            setTimeout( function() {
+                expect( form.view.$.find( c ).closest( '.question' ).hasClass( 'invalid-required' ) ).toEqual( true );
+                done();
+            }, 1500 );
+
+        } );
+    } );
+
 } );
 
 describe( 'Readonly items', function() {
